@@ -35,12 +35,39 @@
     revealEls.forEach(el => io.observe(el));
   }
 
-  // Contact form (front-end only demo)
+  // Contact form (envio real via Formspree)
   const form = document.getElementById('contactForm');
   const formNote = document.getElementById('formNote');
-  form.addEventListener('submit', (e) => {
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const submitBtnLabel = submitBtn.innerHTML;
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    formNote.textContent = 'Mensagem pronta — conecte este formulário a um serviço de e-mail para receber os envios.';
-    formNote.style.color = '#D9C4A2';
-    form.reset();
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Enviando...';
+    formNote.style.color = '';
+    formNote.textContent = '';
+
+    try {
+      const response = await fetch(form.action, {
+        method: form.method,
+        body: new FormData(form),
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (response.ok) {
+        formNote.textContent = 'Mensagem enviada com sucesso! Retornamos em até 1 dia útil.';
+        formNote.style.color = '#D9C4A2';
+        form.reset();
+      } else {
+        formNote.textContent = 'Não foi possível enviar agora. Tente novamente ou use o WhatsApp abaixo.';
+        formNote.style.color = '#e0a0a0';
+      }
+    } catch (err) {
+      formNote.textContent = 'Erro de conexão. Tente novamente ou use o WhatsApp abaixo.';
+      formNote.style.color = '#e0a0a0';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = submitBtnLabel;
+    }
   });
